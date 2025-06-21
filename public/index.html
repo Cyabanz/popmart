@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body>
-<button id="start">Start Session</button>
+<button id="start" disabled>Start Session</button>
 <iframe id="iframe" style="width:100%;height:500px;"></iframe>
 
 <script>
@@ -9,22 +9,32 @@ let csrfToken;
 
 async function getCsrf() {
   const resp = await fetch('/api/csrf');
+  if (!resp.ok) {
+    alert('Error getting CSRF!');
+    return;
+  }
   const data = await resp.json();
+  console.log('CSRF Token received:', data.token);
   csrfToken = data.token;
+  document.getElementById('start').disabled = false;
 }
 
 async function startSession() {
   if (!csrfToken) {
-    alert('Missing CSRF token, trying again...');
-    await getCsrf();
+    alert('Missing CSRF token!');
+    return;
   }
-  const resp = await fetch('/api/start-session', {
+  const url = '/api/start-session';
+  console.log('Attempting fetch:', url);
+  const resp = await fetch(url, {
     method: 'POST',
     headers: {
-      'X-CSRF-Token': csrfToken
+      'X-CSRF-Token': csrfToken,
+      'Content-Type': 'application/json'
     }
   });
   const data = await resp.json();
+  console.log(data);
   if (data.embedUrl) {
     document.getElementById('iframe').src = data.embedUrl;
     alert('Session started!');
@@ -33,9 +43,10 @@ async function startSession() {
   }
 }
 
-// Get CSRF token on page load
+// Initialize
 getCsrf();
 
+// Event
 document.getElementById('start').addEventListener('click', startSession);
 </script>
 </body>
