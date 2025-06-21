@@ -6,5 +6,6 @@ export default async function handler(req, res) {
     'Set-Cookie',
     `csrf_token=${token}; HttpOnly; Secure; SameSite=Strict; Path=/`
   );
-  res.json({ success: true }); 
+  res.json({ success: true, token }); // return it for JS to read
 }
+
